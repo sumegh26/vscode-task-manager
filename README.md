@@ -16,7 +16,7 @@ A practice project featuring two VS Code extensions designed to streamline task 
 ![Dashboard](screenshots/dashboard.PNG)
 
 ### Task plan based on a 9-hour weekly bandwidth
-![Task plan based on a 9-hour weekly bandwidth](screenshots/Task plan based on a 9-hour weekly bandwidth.PNG)
+![Task plan based on a 9-hour weekly bandwidth](screenshots/Task_plan.PNG)
 
 ### To-Do List Extension A
 - **Purpose**: Serves as the core task management hub, allowing users to create, organize, and interact with tasks.
