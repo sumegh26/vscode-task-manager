@@ -95,6 +95,18 @@ function activate(context) {
         addTaskButton.text = '$(plus) Add Task';
     }));
 
+    // Edit Tasks
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.editTask', async () => {
+        const task = (await vscode.window.showQuickPick(tasks.map(t => ({ label: `${t.description} (${t.time} hrs)`, task: t })), { placeHolder: "Select task to edit" }))?.task;
+        if (!task) return;
+        task.description = await vscode.window.showInputBox({ value: task.description, placeHolder: "New description" }) || task.description;
+        task.time = parseFloat(await vscode.window.showInputBox({ value: task.time.toString(), placeHolder: "New time" }) || task.time);
+        task.priority = await vscode.window.showQuickPick(['High', 'Medium', 'Low'], { placeHolder: "New priority" }) || task.priority;
+        globalState.update('todoTasks', tasks);
+        treeProvider.refresh();
+        vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
+    }));
+
     // Get Tasks
     context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.getTasks', () => tasks));
 
