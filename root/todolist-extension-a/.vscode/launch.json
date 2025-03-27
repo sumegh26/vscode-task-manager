@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "extensionHost",
+            "request": "launch",
+            "name": "Launch Both Extensions",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder:todolist-extension-a}",
+                "--extensionDevelopmentPath=${workspaceFolder:timetracker-extension-b}"
+            ],
+            "outFiles": [
+                "${workspaceFolder:todolist-extension-a}/out/**/*.js",
+                "${workspaceFolder:timetracker-extension-b}/out/**/*.js"
+            ]
+        }
+    ]
+}

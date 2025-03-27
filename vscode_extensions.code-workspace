@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "root/todolist-extension-a"
+		},
+		{
+			"path": "root/timetracker-extension-b"
+		}
+	],
+	"settings": {}
+}
