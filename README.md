@@ -21,8 +21,33 @@ A practice project featuring two VS Code extensions designed to streamline task 
   - Plans tasks based on a 9-hour weekly bandwidth.
   - Updates a clickable status bar showing total task time and percentage of bandwidth used.
   - Displays a prioritized task list with warnings for overload.
+    
+## Features
 
-## Features and Interactions
+- **Task Management**:
+  - Add tasks with descriptions, estimated time, priority, and optional resources (Markdown, Excel, JavaScript files, or URLs).
+  - Mark tasks as complete with a single click.
+  - Clear all tasks when needed.
+  - Open task resources directly (e.g., open a Markdown file or URL).
+  - Export tasks to a JSON file and import them later.
+
+- **Tree View**:
+  - View all tasks in a dedicated sidebar with a clean, hierarchical display.
+  - Right-click tasks to mark them as complete or start a Pomodoro session (for incomplete tasks).
+
+- **Dashboard**:
+  - A webview dashboard to visualize task statistics, including completion status and priority breakdown.
+
+- **Pomodoro Timer**:
+  - Start a 25-minute work session followed by a 5-minute break to enhance focus.
+  - Visual progress bar and countdown timer in a webview panel.
+  - Notifications at the end of work and break phases to keep you on track.
+  - Start the timer via the Command Palette or by right-clicking a task in the Tree View.
+
+- **Time Tracking**:
+  - Integrates with a companion extension (`timetracker-extension-b`) to plan and track task durations.
+
+## Interactions
 
 ### Available via Clicks
 - **Tree View (Extension A)**:
