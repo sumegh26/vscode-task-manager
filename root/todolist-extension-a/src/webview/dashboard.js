@@ -4,6 +4,11 @@ function getDashboardContent(tasks) {
     const priorityData = { High: 0, Medium: 0, Low: 0 };
     tasks.forEach(t => priorityData[t.priority] = (priorityData[t.priority] || 0) + 1);
 
+    const dailyStats = {};
+    tasks.filter(t => t.completed).forEach(t => {
+        const date = new Date(t.completedAt).toDateString();
+        dailyStats[date] = (dailyStats[date] || 0) + t.time;
+    });
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +20,7 @@ function getDashboardContent(tasks) {
 <body>
     <h1>Task Dashboard</h1>
     <p>Total Time: ${totalTime} hrs | Completed Time: ${completedTime} hrs</p>
+    <p>Daily Stats: ${Object.entries(dailyStats).map(([d, t]) => `${d}: ${t} hrs`).join(', ')}</p>
     <canvas id="priorityChart"></canvas>
     <h2>Tasks</h2>
     <ul>${tasks.map(t => `<li>${t.description}: ${t.time} hrs, ${t.priority}${t.completed ? ' (Completed)' : ''}${t.resource ? `, ${t.resource}` : ''}</li>`).join('')}</ul>
