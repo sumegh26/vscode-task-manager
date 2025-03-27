@@ -4,20 +4,6 @@ A practice project featuring two VS Code extensions designed to streamline task 
 
 ## Extensions Overview
 
-## Screenshots
-
-### Task List in Tree View
-![Task List](screenshots/task-list.PNG)
-
-### Pomodoro Timer
-![Pomodoro Timer](screenshots/pomodoro-timer.PNG)
-
-### Dashboard
-![Dashboard](screenshots/dashboard.PNG)
-
-### Task plan based on a 9-hour weekly bandwidth
-![Task plan based on a 9-hour weekly bandwidth](screenshots/Task_plan.PNG)
-
 ### To-Do List Extension A
 - **Purpose**: Serves as the core task management hub, allowing users to create, organize, and interact with tasks.
 - **Role**: Provides a primary sidebar Tree View for task listing, integrates with the editor for task-specific file handling, and offers a webview dashboard for visual insights.
@@ -130,3 +116,17 @@ The .vscode/launch.json configuration in the workspace launches both extensions 
     }
 
  **VS Code runs an Extension Development Host instance, loading both extensions as if installed**
+
+## Screenshots
+
+### Task List in Tree View
+![Task List](screenshots/task-list.PNG)
+
+### Pomodoro Timer
+![Pomodoro Timer](screenshots/pomodoro-timer.PNG)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.PNG)
+
+### Task plan based on a 9-hour weekly bandwidth
+![Task plan based on a 9-hour weekly bandwidth](screenshots/Task_plan.PNG)
