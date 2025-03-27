@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.vscode/
+out/
+blog.txt
+MyTasks
+**/node_modules/
