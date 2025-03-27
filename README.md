@@ -26,19 +26,20 @@ A practice project featuring two VS Code extensions designed to streamline task 
 
 ### Available via Clicks
 - **Tree View (Extension A)**:
-  - **Click a Task**: Opens the associated resource (e.g., `.md`, `.js`, URL) in the editor or browser, with editor decorations applied.
-  - **Right-Click a Task**: Shows a context menu with “Complete Task (A)” to mark it done.
+  - **Left-Click a Task**: Opens the associated resource (e.g., `.md`, `.js`, URL) in the editor or browser, with editor decorations applied.
+  - **Left-Click a Task**: Shows a context menu with “Complete Task (A)” to mark it done.
 - **Status Bar (Extension B)**:
-  - **Click the Status Bar**: Triggers the “Plan Tasks (B)” command, showing a prioritized task list.
+  - **Left-click the Status Bar**: Triggers the “Plan Tasks (B)” command, showing a prioritized task list.
 
 ### Command Palette Only (Ctrl+Shift+P)
 - **Extension A**:
   - `Add Task (A)`: Creates a new task with user inputs.
-  - `Complete Task (A)`: Marks a task as complete (alternative to right-click).
+  - `Edit Task (A)`: Edits an existing task.
+  - `Complete Task (A)`: Marks a task as complete (alternative to left-click).
   - `Clear All Tasks (A)`: Deletes all tasks.
-  - `Show Task Dashboard`: Opens the interactive webview with priority charts and stats.
-  - `Export Tasks`: Saves tasks to `tasks.json` in the workspace root.
-  - `Import Tasks`: Loads tasks from `tasks.json`.
+  - `Show Task Dashboard (A)`: Opens the interactive webview with priority charts and stats.
+  - `Export Tasks (A)`: Saves tasks to `tasks.json` in the workspace root.
+  - `Import Tasks (A)`: Loads tasks from `tasks.json`.
 - **Extension B**:
   - `Plan Tasks (B)`: Displays the task planning list (also triggered by status bar click).
 
