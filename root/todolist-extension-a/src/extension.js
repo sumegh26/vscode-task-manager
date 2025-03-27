@@ -1,11 +1,14 @@
 const vscode = require('vscode');
 const TodoTreeProvider = require('./todoTree');
+const { exportTasks, importTasks } = require('./utils/fileUtils');
+const { getDashboardContent } = require('./webview/dashboard');
 const path = require('path');
 
 let tasks = [];
 let treeProvider;
 let addTaskButton;
 let webviewPanel;
+let decorationType;
 
 function activate(context) {
     const globalState = context.globalState;
@@ -15,15 +18,22 @@ function activate(context) {
     treeProvider = new TodoTreeProvider(tasks);
     vscode.window.registerTreeDataProvider('todoListView', treeProvider);
 
-    addTaskButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 200);
+    addTaskButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 200);
     addTaskButton.text = '$(plus) Add Task';
     addTaskButton.tooltip = 'Add a new task';
     addTaskButton.command = 'todolist-extension-a.addTask';
     addTaskButton.show();
     context.subscriptions.push(addTaskButton);
 
-    // Command: Add Task with Resource
-    let addDisposable = vscode.commands.registerCommand('todolist-extension-a.addTask', async () => {
+    // Decoration for editor
+    decorationType = vscode.window.createTextEditorDecorationType({
+        backgroundColor: 'rgba(255, 255, 0, 0.2)',
+        border: '1px solid yellow',
+        after: { contentText: ' [Task]' }
+    });
+
+    // Add Task
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.addTask', async () => {
         let description = await vscode.window.showInputBox({ placeHolder: "Enter task (e.g., Write report)" });
         if (!description) return;
 
@@ -38,7 +48,7 @@ function activate(context) {
         if (!priority) return;
 
         let resourceType = await vscode.window.showQuickPick(
-            ['Markdown (.md)', 'Excel (.xlsx)', 'Code (.js)','Code (.py)', 'URL', 'None'],
+            ['Markdown (.md)', 'Excel (.xlsx)', 'Code (.js)', 'URL', 'None'],
             { placeHolder: "Select resource type (optional)" }
         );
         let resource = null;
@@ -51,146 +61,103 @@ function activate(context) {
             }
         }
 
-        let task = { description, time, priority, completed: false, resource };
+        let task = { description, time, priority, completed: false, resource, createdAt: Date.now(), completedAt: null };
         tasks.push(task);
         globalState.update('todoTasks', tasks);
         console.log(`Added: ${description} (${time} hrs, ${priority}, Resource: ${resource || 'None'})`);
         treeProvider.refresh();
-        let incompleteTasks = tasks.filter(task => !task.completed);
-        vscode.commands.executeCommand('timetracker-extension-b.planTasks', incompleteTasks);
-    });
+        vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
+    }));
 
-    // Command: Complete Task
-    let completeDisposable = vscode.commands.registerCommand('todolist-extension-a.completeTask', async (taskFromContext) => {
-        if (taskFromContext && taskFromContext.description) {
-            taskFromContext.completed = true;
+    // Complete Task
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.completeTask', async (taskFromContext) => {
+        const task = taskFromContext || (await vscode.window.showQuickPick(
+            tasks.map(t => ({ label: `${t.description} (${t.time} hrs, ${t.priority})`, task: t })),
+            { placeHolder: "Select a task to mark as complete" }
+        ))?.task;
+        if (task) {
+            task.completed = true;
+            task.completedAt = Date.now();
             globalState.update('todoTasks', tasks);
-            console.log(`Completed: ${taskFromContext.description}`);
+            console.log(`Completed: ${task.description}`);
             treeProvider.refresh();
-            let incompleteTasks = tasks.filter(task => !task.completed);
-            vscode.commands.executeCommand('timetracker-extension-b.planTasks', incompleteTasks);
-        } else {
-            let taskOptions = tasks.map(task => ({
-                label: `${task.description} (${task.time} hrs, ${task.priority})`,
-                task: task
-            }));
-            let selected = await vscode.window.showQuickPick(taskOptions, { placeHolder: "Select a task to mark as complete" });
-            if (selected) {
-                selected.task.completed = true;
-                globalState.update('todoTasks', tasks);
-                console.log(`Completed: ${selected.task.description}`);
-                treeProvider.refresh();
-                let incompleteTasks = tasks.filter(task => !task.completed);
-                vscode.commands.executeCommand('timetracker-extension-b.planTasks', incompleteTasks);
-            }
+            vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
         }
-    });
+    }));
 
-    // Command: Clear All Tasks
-    let clearDisposable = vscode.commands.registerCommand('todolist-extension-a.clearAll', () => {
+    // Clear All Tasks
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.clearAll', () => {
         tasks.length = 0;
         globalState.update('todoTasks', tasks);
         treeProvider.refresh();
         vscode.commands.executeCommand('timetracker-extension-b.planTasks', []);
         console.log('All tasks cleared!');
         addTaskButton.text = '$(plus) Add Task';
-        addTaskButton.tooltip = 'Add a new task';
-    });
+    }));
 
-    // Command: Get Tasks (for B)
-    let getTasksDisposable = vscode.commands.registerCommand('todolist-extension-a.getTasks', () => {
-        return tasks;
-    });
+    // Get Tasks
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.getTasks', () => tasks));
 
-    // Command: Open Task Resource
-    let openTaskFileDisposable = vscode.commands.registerCommand('todolist-extension-a.openTaskFile', (task) => {
+    // Open Task Resource
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.openTaskFile', (task) => {
         if (!task.resource) {
             vscode.window.showInformationMessage(`No resource associated with "${task.description}"`);
             return;
         }
-
         if (task.resource.startsWith('http://') || task.resource.startsWith('https://')) {
-            console.log(`Opening URL: ${task.resource}`);
             vscode.env.openExternal(vscode.Uri.parse(task.resource));
             return;
         }
-
         if (!vscode.workspace.rootPath) {
-            vscode.window.showErrorMessage('No workspace folder open. Please open a folder.');
-            console.log('No workspace root path available');
+            vscode.window.showErrorMessage('No workspace folder open.');
             return;
         }
-
         const filePath = path.join(vscode.workspace.rootPath, task.resource);
-        console.log(`Attempting to open file: ${filePath}`);
         vscode.workspace.openTextDocument(filePath).then(doc => {
-            console.log(`File opened: ${filePath}`);
-            vscode.window.showTextDocument(doc);
-        }, err => {
-            console.log(`File not found, creating: ${filePath}`);
+            vscode.window.showTextDocument(doc).then(editor => {
+                // Add decoration
+                editor.setDecorations(decorationType, [{ range: new vscode.Range(0, 0, 0, 0) }]);
+            });
+        }, () => {
             let content = `# ${task.description}\n\nTime: ${task.time} hrs\nPriority: ${task.priority}`;
-            if (task.resource.endsWith('.xlsx')) {
-                content = 'This is a placeholder for an Excel file. Open in Excel to edit.';
-            } else if (task.resource.endsWith('.js')) {
-                content = `// Task : ${task.description}\n// Time allocated: ${task.time} hrs`;
-            }
-             else if (task.resource.endsWith('.py')) {
-                content = `# Task : ${task.description}\n# Time allocated: ${task.time} hrs`;
-            }
+            if (task.resource.endsWith('.xlsx')) content = 'Placeholder for Excel.';
+            else if (task.resource.endsWith('.js')) content = `// ${task.description}\nconsole.log("Task: ${task.description}");`;
             vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(content))
-                .then(() => {
-                    vscode.workspace.openTextDocument(filePath).then(doc => {
-                        console.log(`File created and opened: ${filePath}`);
-                        vscode.window.showTextDocument(doc);
+                .then(() => vscode.workspace.openTextDocument(filePath).then(doc => {
+                    vscode.window.showTextDocument(doc).then(editor => {
+                        editor.setDecorations(decorationType, [{ range: new vscode.Range(0, 0, 0, 0) }]);
                     });
-                }, createErr => {
-                    vscode.window.showErrorMessage(`Failed to create file: ${createErr}`);
-                    console.log(`Error creating file: ${createErr}`);
-                });
+                }));
         });
-    });
+    }));
 
-    // Command: Show Webview
-    let showWebviewDisposable = vscode.commands.registerCommand('todolist-extension-a.showWebview', () => {
+    // Show Webview Dashboard
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.showWebview', () => {
         if (!webviewPanel) {
-            webviewPanel = vscode.window.createWebviewPanel(
-                'taskWebview',
-                'Task Details',
-                vscode.ViewColumn.Beside,
-                { enableScripts: true }
-            );
-            webviewPanel.webview.html = getWebviewContent(tasks);
-            webviewPanel.onDidDispose(() => {
-                webviewPanel = undefined;
-            }, null, context.subscriptions);
+            webviewPanel = vscode.window.createWebviewPanel('taskDashboard', 'Task Dashboard', vscode.ViewColumn.Beside, { enableScripts: true });
+            webviewPanel.webview.html = getDashboardContent(tasks);
+            webviewPanel.onDidDispose(() => webviewPanel = undefined, null, context.subscriptions);
         }
         webviewPanel.reveal();
-    });
+    }));
 
-    context.subscriptions.push(addDisposable, completeDisposable, clearDisposable, getTasksDisposable, openTaskFileDisposable, showWebviewDisposable);
+    // Export Tasks
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.exportTasks', () => exportTasks(tasks)));
 
-    let incompleteTasks = tasks.filter(task => !task.completed);
-    vscode.commands.executeCommand('timetracker-extension-b.planTasks', incompleteTasks);
+    // Import Tasks
+    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.importTasks', async () => {
+        const newTasks = await importTasks();
+        if (newTasks) {
+            tasks = newTasks;
+            globalState.update('todoTasks', tasks);
+            treeProvider.refresh();
+            vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
+        }
+    }));
+
+    vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
 }
 
 function deactivate() {}
-
-function getWebviewContent(tasks) {
-    const totalTime = tasks.reduce((sum, task) => sum + (task.time || 0), 0);
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Task Details</title>
-</head>
-<body>
-    <h1>Task Summary</h1>
-    <p>Total Time: ${totalTime} hrs</p>
-    <ul>
-        ${tasks.map(task => `<li>${task.description}: ${task.time} hrs, Priority: ${task.priority}${task.completed ? ' (Completed)' : ''}${task.resource ? `, Resource: ${task.resource}` : ''}</li>`).join('')}
-    </ul>
-</body>
-</html>`;
-}
 
 module.exports = { activate, deactivate };
