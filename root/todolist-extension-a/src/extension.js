@@ -2,13 +2,13 @@ const vscode = require('vscode');
 const TodoTreeProvider = require('./todoTree');
 const { exportTasks, importTasks } = require('./utils/fileUtils');
 const { getDashboardContent } = require('./webview/dashboard');
+const { startPomodoro } = require('./pomodoro');
 const path = require('path');
 
 let tasks = [];
 let treeProvider;
 let addTaskButton;
 let webviewPanel;
-let decorationType;
 
 function activate(context) {
     const globalState = context.globalState;
@@ -24,13 +24,6 @@ function activate(context) {
     addTaskButton.command = 'todolist-extension-a.addTask';
     addTaskButton.show();
     context.subscriptions.push(addTaskButton);
-
-    // Decoration for editor
-    decorationType = vscode.window.createTextEditorDecorationType({
-        backgroundColor: 'rgba(255, 255, 0, 0.2)',
-        border: '1px solid yellow',
-        after: { contentText: ' [Task]' }
-    });
 
     // Add Task
     context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.addTask', async () => {
@@ -95,18 +88,6 @@ function activate(context) {
         addTaskButton.text = '$(plus) Add Task';
     }));
 
-    // Edit Tasks
-    context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.editTask', async () => {
-        const task = (await vscode.window.showQuickPick(tasks.map(t => ({ label: `${t.description} (${t.time} hrs)`, task: t })), { placeHolder: "Select task to edit" }))?.task;
-        if (!task) return;
-        task.description = await vscode.window.showInputBox({ value: task.description, placeHolder: "New description" }) || task.description;
-        task.time = parseFloat(await vscode.window.showInputBox({ value: task.time.toString(), placeHolder: "New time" }) || task.time);
-        task.priority = await vscode.window.showQuickPick(['High', 'Medium', 'Low'], { placeHolder: "New priority" }) || task.priority;
-        globalState.update('todoTasks', tasks);
-        treeProvider.refresh();
-        vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
-    }));
-
     // Get Tasks
     context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.getTasks', () => tasks));
 
@@ -126,20 +107,13 @@ function activate(context) {
         }
         const filePath = path.join(vscode.workspace.rootPath, task.resource);
         vscode.workspace.openTextDocument(filePath).then(doc => {
-            vscode.window.showTextDocument(doc).then(editor => {
-                // Add decoration
-                editor.setDecorations(decorationType, [{ range: new vscode.Range(0, 0, 0, 0) }]);
-            });
+            vscode.window.showTextDocument(doc);
         }, () => {
             let content = `# ${task.description}\n\nTime: ${task.time} hrs\nPriority: ${task.priority}`;
             if (task.resource.endsWith('.xlsx')) content = 'Placeholder for Excel.';
             else if (task.resource.endsWith('.js')) content = `// ${task.description}\nconsole.log("Task: ${task.description}");`;
             vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(content))
-                .then(() => vscode.workspace.openTextDocument(filePath).then(doc => {
-                    vscode.window.showTextDocument(doc).then(editor => {
-                        editor.setDecorations(decorationType, [{ range: new vscode.Range(0, 0, 0, 0) }]);
-                    });
-                }));
+                .then(() => vscode.workspace.openTextDocument(filePath).then(doc => vscode.window.showTextDocument(doc)));
         });
     }));
 
@@ -166,6 +140,10 @@ function activate(context) {
             vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
         }
     }));
+
+    // Start Pomodoro (moved to pomodoro.js)
+    // Inside activate(context), replace the existing startPomodoro registration:
+context.subscriptions.push(vscode.commands.registerCommand('todolist-extension-a.startPomodoro', (task) => startPomodoro(tasks, task)));
 
     vscode.commands.executeCommand('timetracker-extension-b.planTasks', tasks.filter(t => !t.completed));
 }

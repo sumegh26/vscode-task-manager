@@ -17,11 +17,18 @@
       { "command": "todolist-extension-a.showWebview", "title": "Show Task Dashboard (A)" },
       { "command": "todolist-extension-a.exportTasks", "title": "Export Tasks (A)" },
       { "command": "todolist-extension-a.importTasks", "title": "Import Tasks (A)" },
-      { "command": "todolist-extension-a.editTask", "title": "Edit Task (A)" }
+      { "command": "todolist-extension-a.editTask", "title": "Edit Task (A)" },
+      { "command": "todolist-extension-a.startPomodoro", "title": "Start Pomodoro" }
     ],
     "viewsContainers": { "activitybar": [{ "id": "todo-list", "title": "To-Do List", "icon": "resources/todo-icon.svg" }] },
     "views": { "todo-list": [{ "id": "todoListView", "name": "Tasks" }] },
-    "menus": { "view/item/context": [{ "command": "todolist-extension-a.completeTask", "when": "view == todoListView && viewItem == task", "group": "inline" }] }
+    "menus": { "view/item/context": [{ "command": "todolist-extension-a.completeTask", "when": "view == todoListView && viewItem == task", "group": "inline" }
+    ,
+        {
+          "when": "view == todoListView && viewItem == task && !completed",
+          "group": "pomodoro@1",
+          "command": "todolist-extension-a.startPomodoro"
+        }] }
   },
   "scripts": { "lint": "eslint .", "pretest": "npm run lint", "test": "node ./test/runTest.js" },
   "devDependencies": {
