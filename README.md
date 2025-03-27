@@ -13,7 +13,7 @@ A practice project featuring two VS Code extensions designed to streamline task 
 ![Pomodoro Timer](./screenshots/pomodoro-timer.png)
 
 ### Dashboard
-![Dashboard](./screenshots/dashboard.png)
+![Dashboard](screenshots/dashboard.PNG)
 
 ### Task plan based on a 9-hour weekly bandwidth
 ![Task plan based on a 9-hour weekly bandwidth](./screenshots/Task plan based on a 9-hour weekly bandwidth.png)
