@@ -13,11 +13,11 @@
       { "command": "todolist-extension-a.completeTask", "title": "Complete Task (A)" },
       { "command": "todolist-extension-a.clearAll", "title": "Clear All Tasks (A)" },
       { "command": "todolist-extension-a.getTasks", "title": "Get Tasks (A)" },
-      { "command": "todolist-extension-a.openTaskFile", "title": "Open Task File" },
-      { "command": "todolist-extension-a.showWebview", "title": "Show Task Dashboard" },
-      { "command": "todolist-extension-a.exportTasks", "title": "Export Tasks" },
-      { "command": "todolist-extension-a.importTasks", "title": "Import Tasks" },
-      { "command": "todolist-extension-a.editTask", "title": "Edit Task" }
+      { "command": "todolist-extension-a.openTaskFile", "title": "Open Task File (A)" },
+      { "command": "todolist-extension-a.showWebview", "title": "Show Task Dashboard (A)" },
+      { "command": "todolist-extension-a.exportTasks", "title": "Export Tasks (A)" },
+      { "command": "todolist-extension-a.importTasks", "title": "Import Tasks (A)" },
+      { "command": "todolist-extension-a.editTask", "title": "Edit Task (A)" }
     ],
     "viewsContainers": { "activitybar": [{ "id": "todo-list", "title": "To-Do List", "icon": "resources/todo-icon.svg" }] },
     "views": { "todo-list": [{ "id": "todoListView", "name": "Tasks" }] },
